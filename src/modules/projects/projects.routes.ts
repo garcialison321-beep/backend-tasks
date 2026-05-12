@@ -6,7 +6,18 @@ import { authMiddleware } from "../../middlewares/auth.middleware";
 
 const router = Router();
 const projectsController = new ProjectsController();
-
+/**
+ * @swagger
+ * /tasks:
+ *   post:
+ *     summary: Obtener tareas
+ *     tags: [Tasks]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de tareas
+ */
 router.post("/", authMiddleware, validate(createProjectSchema), projectsController.create);
 router.get("/", authMiddleware, projectsController.findAll);
 router.get("/all/:id", authMiddleware, projectsController.findByIdAll);
