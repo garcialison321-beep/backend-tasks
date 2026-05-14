@@ -7,7 +7,7 @@ const _AuthController = new AuthController();
 
 /**
  * @swagger
- * /api/v1/users/register:
+ * /users/register:
  *   post:
  *     summary: Registrar un nuevo usuario
  *     tags:
