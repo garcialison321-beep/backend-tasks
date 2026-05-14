@@ -5,16 +5,47 @@ export const openApiSpec = swaggerJsdoc({
     openapi: "3.0.0",
 
     info: {
-      title: "API tasks",
+      title: "API Tasks",
       version: "1.0.0",
-      description: "Documentacion de endpoints de la API"
+      description: "Documentación de endpoints de la API",
     },
 
     servers: [
       {
         url: "http://localhost:3000/api/v1",
-        description: "Servidor local"
-      }
+        description: "Servidor local",
+      },
+    ],
+
+    tags: [
+      {
+        name: "Users",
+        description: "Endpoints de usuarios",
+      },
+      {
+        name: "Auth",
+        description: "Endpoints de autenticación",
+      },
+      {
+        name: "Tasks",
+        description: "Endpoints de tareas",
+      },
+      {
+        name: "Tags",
+        description: "Endpoints de tags",
+      },
+      {
+        name: "Notifications",
+        description: "Endpoints de notificaciones",
+      },
+      {
+        name: "Attachments",
+        description: "Endpoints de attachments",
+      },
+      {
+        name: "ActivityLogs",
+        description: "Endpoints de activity logs",
+      },
     ],
 
     components: {
@@ -22,17 +53,17 @@ export const openApiSpec = swaggerJsdoc({
         bearerAuth: {
           type: "http",
           scheme: "bearer",
-          bearerFormat: "JWT"
-        }
-      }
+          bearerFormat: "JWT",
+        },
+      },
     },
 
     security: [
       {
-        bearerAuth: []
-      }
-    ]
+        bearerAuth: [],
+      },
+    ],
   },
 
-  apis: ["./src/modules/**/*.routes.ts"]
+  apis: ["./src/modules/**/*.routes.ts"],
 });

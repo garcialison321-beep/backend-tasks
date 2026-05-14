@@ -1,71 +1,115 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { AttachmentsService } from "./attachments.service";
-import { createAttachmentSchema } from "./attachments.schema";
 
 export class AttachmentsController {
-  private service = new AttachmentsService();
 
-  create = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+  private attachmentsService: AttachmentsService;
+
+  constructor() {
+    this.attachmentsService = new AttachmentsService();
+  }
+
+  create = async (req: any, res: Response) => {
     try {
 
-      const data = createAttachmentSchema.parse(req.body);
+      const userId = req.user.id;
 
-      const userId = (req as any).user?.sub;
+      const attachment =
+        await this.attachmentsService.create(
+          req.body,
+          userId
+        );
 
-      if (!userId) {
-        return res.status(401).json({
-          message: "Usuario no autenticado",
-        });
-      }
-
-      const attachment = await this.service.create(data, userId);
-
-      return res.status(201).json(attachment);
+      res.status(201).json(attachment);
 
     } catch (error) {
-      next(error);
+
+      res.status(500).json({
+        message: "Error al crear attachment",
+        error,
+      });
     }
   };
 
-  findByTask = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+  findAll = async (req: Request, res: Response) => {
     try {
 
-      const taskId = req.params.taskId as string;
+      const attachments =
+        await this.attachmentsService.findAll();
 
-      const attachments = await this.service.findByTask(taskId);
-
-      return res.status(200).json(attachments);
+      res.status(200).json(attachments);
 
     } catch (error) {
-      next(error);
+
+      res.status(500).json({
+        message: "Error al obtener attachments",
+        error,
+      });
     }
   };
 
-  delete = async (
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction
-  ) => {
+  findById = async (req: Request, res: Response) => {
     try {
 
       const { id } = req.params;
 
-      await this.service.delete(id);
+      const attachment =
+        await this.attachmentsService.findById(id);
 
-      return res.status(200).json({
+      res.status(200).json(attachment);
+
+    } catch (error) {
+
+      res.status(500).json({
+        message: "Error al obtener attachment",
+        error,
+      });
+    }
+  };
+
+  update = async (req: Request, res: Response) => {
+    try {
+
+      const { id } = req.params;
+
+      const updatedAttachment =
+        await this.attachmentsService.update(
+          id,
+          req.body
+        );
+
+      res.status(200).json({
+        message: "Attachment actualizado correctamente",
+        attachment: updatedAttachment,
+      });
+
+    } catch (error) {
+
+      res.status(500).json({
+        message: "Error al actualizar attachment",
+        error,
+      });
+    }
+  };
+
+  delete = async (req: Request, res: Response) => {
+    try {
+
+      const { id } = req.params;
+
+      await this.attachmentsService.delete(id);
+
+      res.status(200).json({
         message: "Attachment eliminado correctamente",
       });
 
     } catch (error) {
-      next(error);
+
+      res.status(500).json({
+        message: "Error al eliminar attachment",
+        error,
+      });
     }
   };
+
 }

@@ -1,49 +1,111 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { TagsService } from "./tags.service";
-import { createTagSchema } from "./tags.schema";
 
 export class TagsController {
-  private service = new TagsService();
 
-  create = async (req: Request, res: Response, next: NextFunction) => {
+  private tagsService: TagsService;
+
+  constructor() {
+    this.tagsService = new TagsService();
+  }
+
+  create = async (req: any, res: Response) => {
     try {
-      const data = createTagSchema.parse(req.body);
-      const userId = (req as any).user?.sub;
 
-      if (!userId) {
-        return res.status(401).json({
-          message: "Usuario no autenticado",
-        });
-      }
+      const userId = req.user.id;
 
-      const tag = await this.service.create(data, userId);
+      const tag = await this.tagsService.create(
+        req.body,
+        userId
+      );
 
-      return res.status(201).json(tag);
+      res.status(201).json(tag);
+
     } catch (error) {
-      next(error);
+
+      res.status(500).json({
+        message: "Error al crear tag",
+        error,
+      });
     }
   };
 
-  findAll = async (_req: Request, res: Response, next: NextFunction) => {
+  findAll = async (req: Request, res: Response) => {
     try {
-      const tags = await this.service.findAll();
-      return res.status(200).json(tags);
+
+      const tags = await this.tagsService.findAll();
+
+      res.status(200).json(tags);
+
     } catch (error) {
-      next(error);
+
+      res.status(500).json({
+        message: "Error al obtener tags",
+        error,
+      });
     }
   };
 
-  delete = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+  findById = async (req: Request, res: Response) => {
     try {
+
       const { id } = req.params;
 
-      await this.service.delete(id);
+      const tag = await this.tagsService.findById(id);
 
-      return res.status(200).json({
-        message: "Tag eliminado correctamente",
-      });
+      res.status(200).json(tag);
+
     } catch (error) {
-      next(error);
+
+      res.status(500).json({
+        message: "Error al obtener tag",
+        error,
+      });
     }
   };
+
+  update = async (req: Request, res: Response) => {
+    try {
+
+      const { id } = req.params;
+
+      const updatedTag = await this.tagsService.update(
+        id,
+        req.body
+      );
+
+      res.status(200).json({
+        message: "Tag actualizado correctamente",
+        tag: updatedTag,
+      });
+
+    } catch (error) {
+
+      res.status(500).json({
+        message: "Error al actualizar tag",
+        error,
+      });
+    }
+  };
+
+  delete = async (req: Request, res: Response) => {
+    try {
+
+      const { id } = req.params;
+
+      await this.tagsService.delete(id);
+
+      res.status(200).json({
+        message: "Tag eliminado correctamente",
+      });
+
+    } catch (error) {
+
+      res.status(500).json({
+        message: "Error al eliminar tag",
+        error,
+      });
+    }
+  };
+
 }

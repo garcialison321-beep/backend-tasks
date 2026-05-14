@@ -1,36 +1,89 @@
 import { ObjectId } from "mongodb";
-import { TagsRepository } from "./tags.repository";
-import { Tag } from "./tags.model";
-import { CreateTagDto } from "./tags.schema";
+import { getDb } from "../../config/database";
 
 export class TagsService {
-  private repository = new TagsRepository();
 
-  async create(data: CreateTagDto, userId: string): Promise<Tag> {
-    const now = new Date();
+  async create(data: any, userId: string) {
 
-    const tag: Tag = {
+    const db = getDb();
+
+    const newTag = {
+
       name: data.name,
+
       color: data.color,
+
       createdBy: new ObjectId(userId),
-      createdAt: now,
-      updatedAt: now,
+
+      createdAt: new Date(),
     };
 
-    return await this.repository.create(tag);
+    const result =
+      await db.collection("tags")
+      .insertOne(newTag);
+
+    return {
+      _id: result.insertedId,
+      ...newTag,
+    };
   }
 
-  async findAll(): Promise<Tag[]> {
-    return await this.repository.findAll();
+  async findAll() {
+
+    const db = getDb();
+
+    return await db
+      .collection("tags")
+      .find()
+      .toArray();
   }
 
-  async delete(id: string): Promise<void> {
-    const tag = await this.repository.findById(id);
+  async findById(id: string) {
 
-    if (!tag) {
-      throw new Error("El tag no existe");
-    }
+    const db = getDb();
 
-    await this.repository.delete(id);
+    return await db
+      .collection("tags")
+      .findOne({
+        _id: new ObjectId(id),
+      });
   }
+
+  async update(id: string, data: any) {
+
+    const db = getDb();
+
+    await db
+      .collection("tags")
+      .updateOne(
+        {
+          _id: new ObjectId(id),
+        },
+        {
+          $set: {
+            name: data.name,
+            color: data.color,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+    return await db
+      .collection("tags")
+      .findOne({
+        _id: new ObjectId(id),
+      });
+  }
+
+  async delete(id: string) {
+
+    const db = getDb();
+
+    return await db
+      .collection("tags")
+      .deleteOne({
+        _id: new ObjectId(id),
+      });
+  }
+
 }

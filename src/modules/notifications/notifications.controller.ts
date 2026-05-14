@@ -1,92 +1,115 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { NotificationsService } from "./notifications.service";
-import { createNotificationSchema } from "./notifications.schema";
 
 export class NotificationsController {
 
-  private service = new NotificationsService();
+  private notificationsService: NotificationsService;
 
-  create = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+  constructor() {
+    this.notificationsService = new NotificationsService();
+  }
+
+  create = async (req: any, res: Response) => {
     try {
 
-      const data = createNotificationSchema.parse(req.body);
+      const userId = req.user.id;
 
       const notification =
-        await this.service.create(data);
+        await this.notificationsService.create(
+          req.body,
+          userId
+        );
 
-      return res.status(201).json(notification);
+      res.status(201).json(notification);
 
     } catch (error) {
-      next(error);
+
+      res.status(500).json({
+        message: "Error al crear notificación",
+        error,
+      });
     }
   };
 
-  findMine = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+  findAll = async (req: Request, res: Response) => {
     try {
-
-      const userId = (req as any).user?.sub;
-
-      if (!userId) {
-        return res.status(401).json({
-          message: "Usuario no autenticado",
-        });
-      }
 
       const notifications =
-        await this.service.findByUser(userId);
+        await this.notificationsService.findAll();
 
-      return res.status(200).json(notifications);
+      res.status(200).json(notifications);
 
     } catch (error) {
-      next(error);
+
+      res.status(500).json({
+        message: "Error al obtener notificaciones",
+        error,
+      });
     }
   };
 
-  markAsRead = async (
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction
-  ) => {
+  findById = async (req: Request, res: Response) => {
     try {
 
       const { id } = req.params;
 
-      await this.service.markAsRead(id);
+      const notification =
+        await this.notificationsService.findById(id);
 
-      return res.status(200).json({
-        message: "Notificación leída",
-      });
+      res.status(200).json(notification);
 
     } catch (error) {
-      next(error);
+
+      res.status(500).json({
+        message: "Error al obtener notificación",
+        error,
+      });
     }
   };
 
-  delete = async (
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction
-  ) => {
+  update = async (req: Request, res: Response) => {
     try {
 
       const { id } = req.params;
 
-      await this.service.delete(id);
+      const updatedNotification =
+        await this.notificationsService.update(
+          id,
+          req.body
+        );
 
-      return res.status(200).json({
-        message: "Notificación eliminada",
+      res.status(200).json({
+        message: "Notificación actualizada correctamente",
+        notification: updatedNotification,
       });
 
     } catch (error) {
-      next(error);
+
+      res.status(500).json({
+        message: "Error al actualizar notificación",
+        error,
+      });
     }
   };
+
+  delete = async (req: Request, res: Response) => {
+    try {
+
+      const { id } = req.params;
+
+      await this.notificationsService.delete(id);
+
+      res.status(200).json({
+        message: "Notificación eliminada correctamente",
+      });
+
+    } catch (error) {
+
+      res.status(500).json({
+        message: "Error al eliminar notificación",
+        error,
+      });
+    }
+  };
+
 }

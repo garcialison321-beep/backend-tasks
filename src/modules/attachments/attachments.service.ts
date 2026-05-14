@@ -1,41 +1,91 @@
 import { ObjectId } from "mongodb";
-import { AttachmentsRepository } from "./attachments.repository";
-import { Attachment } from "./attachments.model";
-import { CreateAttachmentDto } from "./attachments.schema";
+import { getDb } from "../../config/database";
 
 export class AttachmentsService {
-  private repository = new AttachmentsRepository();
 
-  async create(
-    data: CreateAttachmentDto,
-    userId: string
-  ): Promise<Attachment> {
+  async create(data: any, userId: string) {
 
-    const now = new Date();
+    const db = getDb();
 
-    const attachment: Attachment = {
-      taskId: new ObjectId(data.taskId),
+    const newAttachment = {
+
       fileName: data.fileName,
+
       fileUrl: data.fileUrl,
+
+      taskId: data.taskId,
+
       uploadedBy: new ObjectId(userId),
-      createdAt: now,
-      updatedAt: now,
+
+      createdAt: new Date(),
     };
 
-    return await this.repository.create(attachment);
+    const result =
+      await db.collection("attachments")
+      .insertOne(newAttachment);
+
+    return {
+      _id: result.insertedId,
+      ...newAttachment,
+    };
   }
 
-  async findByTask(taskId: string): Promise<Attachment[]> {
-    return await this.repository.findByTask(taskId);
+  async findAll() {
+
+    const db = getDb();
+
+    return await db
+      .collection("attachments")
+      .find()
+      .toArray();
   }
 
-  async delete(id: string): Promise<void> {
-    const attachment = await this.repository.findById(id);
+  async findById(id: string) {
 
-    if (!attachment) {
-      throw new Error("El attachment no existe");
-    }
+    const db = getDb();
 
-    await this.repository.delete(id);
+    return await db
+      .collection("attachments")
+      .findOne({
+        _id: new ObjectId(id),
+      });
   }
+
+  async update(id: string, data: any) {
+
+    const db = getDb();
+
+    await db
+      .collection("attachments")
+      .updateOne(
+        {
+          _id: new ObjectId(id),
+        },
+        {
+          $set: {
+            fileName: data.fileName,
+            fileUrl: data.fileUrl,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+    return await db
+      .collection("attachments")
+      .findOne({
+        _id: new ObjectId(id),
+      });
+  }
+
+  async delete(id: string) {
+
+    const db = getDb();
+
+    return await db
+      .collection("attachments")
+      .deleteOne({
+        _id: new ObjectId(id),
+      });
+  }
+
 }

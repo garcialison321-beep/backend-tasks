@@ -14,7 +14,7 @@ const tasksController = new TasksController();
  *     tags: [Tasks]
  *     security:
  *       - bearerAuth: []
- *     description: Este metodo crea una nueva tarea
+ *     description: Este método crea una nueva tarea
  *     requestBody:
  *       required: true
  *       content:
@@ -70,48 +70,6 @@ router.get(
 
 /**
  * @swagger
- * /tasks/me:
- *   get:
- *     summary: Obtener tareas del usuario autenticado
- *     tags: [Tasks]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Lista de tareas del usuario
- */
-router.get(
-  "/me",
-  authMiddleware,
-  tasksController.findByUser
-);
-
-/**
- * @swagger
- * /tasks/project/{projectId}:
- *   get:
- *     summary: Obtener tareas por proyecto
- *     tags: [Tasks]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: projectId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Lista de tareas del proyecto
- */
-router.get(
-  "/project/:projectId",
-  authMiddleware,
-  tasksController.findByProject
-);
-
-/**
- * @swagger
  * /tasks/{id}:
  *   get:
  *     summary: Obtener tarea por ID
@@ -132,6 +90,49 @@ router.get(
   "/:id",
   authMiddleware,
   tasksController.findById
+);
+
+/**
+ * @swagger
+ * /tasks/{id}:
+ *   put:
+ *     summary: Actualizar tarea
+ *     tags: [Tasks]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: Backend actualizado
+ *               description:
+ *                 type: string
+ *                 example: Modificar endpoints REST
+ *               priority:
+ *                 type: string
+ *                 example: medium
+ *               status:
+ *                 type: string
+ *                 example: in_progress
+ *     responses:
+ *       200:
+ *         description: Tarea actualizada correctamente
+ */
+router.put(
+  "/:id",
+  authMiddleware,
+  tasksController.update
 );
 
 /**

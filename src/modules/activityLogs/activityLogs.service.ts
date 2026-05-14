@@ -1,43 +1,91 @@
 import { ObjectId } from "mongodb";
-import { ActivityLogsRepository } from "./activityLogs.repository";
-import { ActivityLog } from "./activityLogs.model";
-import { CreateActivityLogDto } from "./activityLogs.schema";
+import { getDb } from "../../config/database";
 
 export class ActivityLogsService {
 
-  private repository =
-    new ActivityLogsRepository();
+  async create(data: any, userId: string) {
 
-  async create(
-    data: CreateActivityLogDto,
-    userId: string
-  ): Promise<ActivityLog> {
+    const db = getDb();
 
-    const log: ActivityLog = {
-
-      userId: new ObjectId(userId),
+    const newActivityLog = {
 
       action: data.action,
 
-      entity: data.entity,
-
-      entityId: new ObjectId(data.entityId),
-
       description: data.description,
+
+      taskId: data.taskId,
+
+      userId: new ObjectId(userId),
 
       createdAt: new Date(),
     };
 
-    return await this.repository.create(log);
+    const result =
+      await db.collection("activityLogs")
+      .insertOne(newActivityLog);
+
+    return {
+      _id: result.insertedId,
+      ...newActivityLog,
+    };
   }
 
   async findAll() {
 
-    return await this.repository.findAll();
+    const db = getDb();
+
+    return await db
+      .collection("activityLogs")
+      .find()
+      .toArray();
   }
 
-  async findByUser(userId: string) {
+  async findById(id: string) {
 
-    return await this.repository.findByUser(userId);
+    const db = getDb();
+
+    return await db
+      .collection("activityLogs")
+      .findOne({
+        _id: new ObjectId(id),
+      });
   }
+
+  async update(id: string, data: any) {
+
+    const db = getDb();
+
+    await db
+      .collection("activityLogs")
+      .updateOne(
+        {
+          _id: new ObjectId(id),
+        },
+        {
+          $set: {
+            action: data.action,
+            description: data.description,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+    return await db
+      .collection("activityLogs")
+      .findOne({
+        _id: new ObjectId(id),
+      });
+  }
+
+  async delete(id: string) {
+
+    const db = getDb();
+
+    return await db
+      .collection("activityLogs")
+      .deleteOne({
+        _id: new ObjectId(id),
+      });
+  }
+
 }
