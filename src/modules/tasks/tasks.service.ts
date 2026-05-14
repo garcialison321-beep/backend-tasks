@@ -79,6 +79,34 @@ export class TasksService {
       .toArray();
   }
 
+  async update(id: string, data: any) {
+
+    const db = getDb();
+
+    await db
+      .collection("tasks")
+      .updateOne(
+        {
+          _id: new ObjectId(id),
+        },
+        {
+          $set: {
+            title: data.title,
+            description: data.description,
+            priority: data.priority,
+            status: data.status,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+    return await db
+      .collection("tasks")
+      .findOne({
+        _id: new ObjectId(id),
+      });
+  }
+
   async delete(id: string) {
 
     const db = getDb();
@@ -89,4 +117,5 @@ export class TasksService {
         _id: new ObjectId(id),
       });
   }
+
 }

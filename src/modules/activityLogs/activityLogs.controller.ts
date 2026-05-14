@@ -1,84 +1,115 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { ActivityLogsService } from "./activityLogs.service";
-import { createActivityLogSchema } from "./activityLogs.schema";
 
 export class ActivityLogsController {
 
-  private service =
-    new ActivityLogsService();
+  private activityLogsService: ActivityLogsService;
 
-  create = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+  constructor() {
+    this.activityLogsService = new ActivityLogsService();
+  }
 
+  create = async (req: any, res: Response) => {
     try {
 
-      const data =
-        createActivityLogSchema.parse(req.body);
+      const userId = req.user.id;
 
-      const userId =
-        (req as any).user?.sub;
+      const activityLog =
+        await this.activityLogsService.create(
+          req.body,
+          userId
+        );
 
-      if (!userId) {
-        return res.status(401).json({
-          message: "Usuario no autenticado",
-        });
-      }
-
-      const log =
-        await this.service.create(data, userId);
-
-      return res.status(201).json(log);
+      res.status(201).json(activityLog);
 
     } catch (error) {
-      next(error);
+
+      res.status(500).json({
+        message: "Error al crear activity log",
+        error,
+      });
     }
   };
 
-  findAll = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-
+  findAll = async (req: Request, res: Response) => {
     try {
 
-      const logs =
-        await this.service.findAll();
+      const activityLogs =
+        await this.activityLogsService.findAll();
 
-      return res.status(200).json(logs);
+      res.status(200).json(activityLogs);
 
     } catch (error) {
-      next(error);
+
+      res.status(500).json({
+        message: "Error al obtener activity logs",
+        error,
+      });
     }
   };
 
-  findMine = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-
+  findById = async (req: Request, res: Response) => {
     try {
 
-      const userId =
-        (req as any).user?.sub;
+      const { id } = req.params;
 
-      if (!userId) {
-        return res.status(401).json({
-          message: "Usuario no autenticado",
-        });
-      }
+      const activityLog =
+        await this.activityLogsService.findById(id);
 
-      const logs =
-        await this.service.findByUser(userId);
-
-      return res.status(200).json(logs);
+      res.status(200).json(activityLog);
 
     } catch (error) {
-      next(error);
+
+      res.status(500).json({
+        message: "Error al obtener activity log",
+        error,
+      });
     }
   };
+
+  update = async (req: Request, res: Response) => {
+    try {
+
+      const { id } = req.params;
+
+      const updatedActivityLog =
+        await this.activityLogsService.update(
+          id,
+          req.body
+        );
+
+      res.status(200).json({
+        message: "Activity log actualizado correctamente",
+        activityLog: updatedActivityLog,
+      });
+
+    } catch (error) {
+
+      res.status(500).json({
+        message: "Error al actualizar activity log",
+        error,
+      });
+    }
+  };
+
+  delete = async (req: Request, res: Response) => {
+    try {
+
+      const { id } = req.params;
+
+      await this.activityLogsService.delete(id);
+
+      res.status(200).json({
+        message: "Activity log eliminado correctamente",
+      });
+
+    } catch (error) {
+
+      res.status(500).json({
+        message: "Error al eliminar activity log",
+        error,
+      });
+    }
+  };
+
 }

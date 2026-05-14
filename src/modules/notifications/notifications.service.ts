@@ -1,55 +1,95 @@
 import { ObjectId } from "mongodb";
-import { NotificationsRepository } from "./notifications.repository";
-import { Notification } from "./notifications.model";
-import { CreateNotificationDto } from "./notifications.schema";
+import { getDb } from "../../config/database";
 
 export class NotificationsService {
 
-  private repository = new NotificationsRepository();
+  async create(data: any, userId: string) {
 
-  async create(
-    data: CreateNotificationDto
-  ): Promise<Notification> {
+    const db = getDb();
 
-    const now = new Date();
+    const newNotification = {
 
-    const notification: Notification = {
-      userId: new ObjectId(data.userId),
       title: data.title,
+
       message: data.message,
+
       type: data.type,
+
       isRead: false,
-      createdAt: now,
-      updatedAt: now,
+
+      userId: new ObjectId(userId),
+
+      createdAt: new Date(),
     };
 
-    return await this.repository.create(notification);
+    const result =
+      await db.collection("notifications")
+      .insertOne(newNotification);
+
+    return {
+      _id: result.insertedId,
+      ...newNotification,
+    };
   }
 
-  async findByUser(userId: string): Promise<Notification[]> {
+  async findAll() {
 
-    return await this.repository.findByUser(userId);
+    const db = getDb();
+
+    return await db
+      .collection("notifications")
+      .find()
+      .toArray();
   }
 
-  async markAsRead(id: string): Promise<void> {
+  async findById(id: string) {
 
-    const notification = await this.repository.findById(id);
+    const db = getDb();
 
-    if (!notification) {
-      throw new Error("La notificación no existe");
-    }
-
-    await this.repository.markAsRead(id);
+    return await db
+      .collection("notifications")
+      .findOne({
+        _id: new ObjectId(id),
+      });
   }
 
-  async delete(id: string): Promise<void> {
+  async update(id: string, data: any) {
 
-    const notification = await this.repository.findById(id);
+    const db = getDb();
 
-    if (!notification) {
-      throw new Error("La notificación no existe");
-    }
+    await db
+      .collection("notifications")
+      .updateOne(
+        {
+          _id: new ObjectId(id),
+        },
+        {
+          $set: {
+            title: data.title,
+            message: data.message,
+            type: data.type,
+            isRead: data.isRead,
+            updatedAt: new Date(),
+          },
+        }
+      );
 
-    await this.repository.delete(id);
+    return await db
+      .collection("notifications")
+      .findOne({
+        _id: new ObjectId(id),
+      });
   }
+
+  async delete(id: string) {
+
+    const db = getDb();
+
+    return await db
+      .collection("notifications")
+      .deleteOne({
+        _id: new ObjectId(id),
+      });
+  }
+
 }
